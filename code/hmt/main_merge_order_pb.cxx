@@ -23,11 +23,11 @@ bool operation ()
   typedef TRegionMap<Label, Point<DIMENSION>> RegionMap;
   RegionMap rmap(segImage, mask, true); // Only use contours
   if (type == 1) {
+//std::cout << "genMergeOrderGreedyUsingPbApproxMedian" << std::endl;
+    auto faux = [](std::vector<double>& data, Label r0, Label r1) { std::cout << "r0=" << r0 << ", r1=" << r1 << "\ndata: " << data << std::endl; };
+    auto f_true = [](TBoundaryTable<std::vector<double>, RegionMap>& bt, TBoundaryTable<std::vector<double>, RegionMap>::iterator it) -> bool { std::cout << "Check boundary table condition" << std::endl; return true; };
     genMergeOrderGreedyUsingPbApproxMedian(
-        order, saliencies, rmap, false, pbImage, f_true
-        <TBoundaryTable<std::vector<double>, RegionMap>&,
-        TBoundaryTable<std::vector<double>, RegionMap>::iterator>,
-        f_null<std::vector<double>&, Label, Label>);
+      order, saliencies, rmap, false, pbImage, f_true, faux);
   } else if (type == 2) {
     genMergeOrderGreedyUsingPbMean(
         order, saliencies, rmap, false, pbImage, f_true

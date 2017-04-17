@@ -127,10 +127,12 @@ class TBoundaryTable : public Object {
     auto btit = m_table.begin();
     while (btit != m_table.end() && btit->first.first <= r1) {
       Key rs;
-      if (btit->first.first == r0 || btit->first.first == r1)
-      { rs = btit->first.second; }
-      else if (btit->first.second == r0 || btit->first.second == r1)
-      { rs = btit->first.first; }
+      if (btit->first.first == r0 || btit->first.first == r1) {
+        rs = btit->first.second;
+      }
+      else if (btit->first.second == r0 || btit->first.second == r1) {
+        rs = btit->first.first;
+      }
       else {
         ++btit;
         continue;
@@ -152,6 +154,14 @@ class TBoundaryTable : public Object {
          btit0s == m_table.end()? nullptr: &btit0s->second->data,
          btit1s == m_table.end()? nullptr: &btit1s->second->data);
       double sal = fsal(btit2s->second->data, rs, r2);
+
+      // threshold saliency???
+//      if (sal <= 5.0) {
+//        ++btit;
+//        continue;
+//      }
+
+      
       btit2s->second->mqit =
           m_mqueue.insert(std::make_pair(sal, btit2s));
       if (btit0s != m_table.end()) {

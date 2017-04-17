@@ -4,7 +4,7 @@
 #include "util/text_cmd.hxx"
 using namespace glia;
 
-bool operation (std::string const& outputImageFile,
+bool operation (std::string const& outputImageFile, std::string const& testOutputImageFile,
                 std::string const& segImageFile,
                 std::string const& pbImageFile,
                 std::string const& maskImageFile,
@@ -39,12 +39,13 @@ bool operation (std::string const& outputImageFile,
            std::swap(pr0, pr1);
            std::swap(sz0, sz1);
          }
+//std::cout << "pre_merge: sz0=" << sz0 << ", sz1=" << sz1 << std::endl;
          if (sz0 < sizeThresholds[0]) { return true; }
          if (sizeThresholds.size() > 1) {
            if (sz0 < sizeThresholds[1]) {
              auto rpit0 = rpbs.find(key0);
              if (rpit0 != rpbs.end()) {
-               if (rpit0->second > rpbThreshold) { return true; }
+               if (rpit0->second > rpbThreshold) { /*std::cout << "rpit0->second=" << rpit0->second << ", rpbThreshold=" << rpbThreshold << std::endl;*/ return true; }
              } else {
                double rpb = 0.0;
                pr0->traverse(
@@ -53,13 +54,14 @@ bool operation (std::string const& outputImageFile,
                      rpb += pbImage->GetPixel(p); });
                rpb = sdivide(rpb, sz0, 0.0);
                rpbs[key0] = rpb;
+//std::cout << "rpb (57)=" << rpb << ", rpbThreshold=" << rpbThreshold << std::endl;
                if (rpb > rpbThreshold) { return true; }
              }
            }
            if (sz1 < sizeThresholds[1]) {
              auto rpit1 = rpbs.find(key1);
              if (rpit1 != rpbs.end()) {
-               if (rpit1->second > rpbThreshold) { return true; }
+               if (rpit1->second > rpbThreshold) { /*std::cout << "rpit1->second=" << rpit1->second << ", rpbThreshold=" << rpbThreshold << std::endl;*/ return true; }
              } else {
                double rpb = 0.0;
                pr1->traverse(
@@ -68,6 +70,7 @@ bool operation (std::string const& outputImageFile,
                      rpb += pbImage->GetPixel(p); });
                rpb = sdivide(rpb, sz1, 0.0);
                rpbs[key1] = rpb;
+//std::cout << "rpb (72)=" << rpb << ", rpbThreshold=" << rpbThreshold << std::endl;
                if (rpb > rpbThreshold) { return true; }
              }
            }
@@ -83,13 +86,16 @@ bool operation (std::string const& outputImageFile,
         (outputImageFile, segImage, compress);
   }
   else { writeImage(outputImageFile, segImage, compress); }
+  // test
+  castWriteImage<UCharImage<DIMENSION>>
+  (testOutputImageFile, segImage, compress);
   return true;
 }
 
 
 int main (int argc, char* argv[])
 {
-  std::string segImageFile, pbImageFile, maskImageFile, outputImageFile;
+  std::string segImageFile, pbImageFile, maskImageFile, outputImageFile, testOutputImageFile;
   std::vector<int> sizeThresholds;
   double rpbThreshold;
   bool relabel = false, write16 = false, compress = false;
@@ -115,10 +121,13 @@ int main (int argc, char* argv[])
        "Whether to compress output image file(s) [default: false]")
       ("outputImage,o",
        bpo::value<std::string>(&outputImageFile)->required(),
-       "Output image file name");
+       "Output image file name")
+      ("toi",
+       bpo::value<std::string>(&testOutputImageFile)->required(),
+       "Test output image file name");
   return
       parse(argc, argv, opts) &&
-      operation(outputImageFile, segImageFile, pbImageFile, maskImageFile,
+      operation(outputImageFile, testOutputImageFile, segImageFile, pbImageFile, maskImageFile,
                 sizeThresholds, rpbThreshold, relabel, write16, compress)?
       EXIT_SUCCESS: EXIT_FAILURE;
 }

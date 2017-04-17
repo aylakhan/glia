@@ -4,6 +4,8 @@
 #include "type/tuple.hxx"
 #include "type/tree.hxx"
 
+#include <iostream>
+
 namespace glia {
 namespace hmt {
 
@@ -50,15 +52,21 @@ genTreeWithNodePotentials
             if (!node.isLeaf()) {
               node.data.potential = *mpit;
               double pSplit = 1.0 - *mpit;
+//std::cout << "node " << node.self << " potential=" << node.data.potential << ", pSplit=" << pSplit << std::endl;
               for (auto child: node.children) {
                 if (tree[child].isLeaf())
-                { tree[child].data.potential = pSplit * pSplit; }
-                else { tree[child].data.potential *= pSplit; }
+                { tree[child].data.potential = pSplit * pSplit; /*std::cout << "leaf " << child << " potential=" << tree[child].data.potential << std::endl;*/ }
+                else { tree[child].data.potential *= pSplit;  /*std::cout << "tree node " << child << " potential=" << tree[child].data.potential << std::endl;*/ }
               }
               ++mpit;
             }
+            else
+            {
+//std::cout << "leaf " << node.self << " potential=" << node.data.potential << std::endl;
+            }
           });
   tree[tree.root()].data.potential *= tree[tree.root()].data.potential;
+//std::cout << "tree root " << tree.root() << " potiential=" << tree[tree.root()].data.potential << std::endl;
   return mpit;
 }
 

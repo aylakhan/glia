@@ -31,6 +31,8 @@ const Label MASK_IN_VAL = MASK_OUT_VAL + 1;
 typedef itk::RGBPixel<uint8> Rgb;
 typedef itk::Image<Rgb, 2> RgbImage;
 
+template <UInt D> using UCharImage = itk::Image<unsigned char, D>;
+template <UInt D> using ULongImage = itk::Image<unsigned long, D>;
 template <UInt D> using BoolImage = itk::Image<bool, D>;
 template <UInt D> using UInt8Image = itk::Image<uint8, D>;
 template <UInt D> using UInt16Image = itk::Image<uint16, D>;

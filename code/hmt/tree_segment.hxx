@@ -26,14 +26,35 @@ genLabelTransform (std::unordered_map<TKey, TKey>& lmap,
                    std::vector<TTr> const& trees,
                    TContainer const& picks, TKey keyToAssign)
 {
+//std::cout << "genLabelTransform: #trees=" << trees.size() << ", " << keyToAssign << std::endl;
   for (auto const& pick: picks) {
     trees[pick.first].traverseLeaves(
         pick.second, [keyToAssign, &lmap](typename TTr::Node const& node)
         { lmap[node.data.label] = keyToAssign; });
     ++keyToAssign;
   }
+//std::cout << "genLabelTransform: final key val=" << keyToAssign << std::endl;
 }
 
+//template <typename TImagePtr, typename TKey, typename TTr, typename TContainer> void
+//filterLabelTransform (TImagePtr& segImage, std::unordered_map<TKey, TKey>& lmap, std::vector<TTr> const& trees, TContainer const& picks, TKey notFoundKey)
+//{
+//  
+//  // try to find segImage value in picks
+//  // if not found, set pixel at index to notFoundKey (0)
+//
+//  std::list< typename TImage<TImagePtr>::IndexType > backgroundIndexList;
+//  for ( TImageCIIt<TImagePtr> iit( segImage, segImage->GetRequestedRegion() ); !iit.IsAtEnd(); ++iit ) {
+//    auto val = iit.Value();
+//    auto idx = iit.GetIndex();
+//
+//    auto lmapIt = lmap.find(val);
+//    if ( lmapIt == lmap.end() ) {
+//std::cout << val << " not in lmap" << std::endl;
+//      segImage->SetPixel(idx, notFoundKey);
+//    }
+//  }
+//}
 
 template <typename TImagePtr, typename TTr, typename TMaskPtr,
           typename TContainer> void
@@ -53,15 +74,20 @@ genFinalSegmentation
 template <typename TImagePtr, typename TTr, typename TMaskPtr,
           typename TContainer> void
 genFinalSegmentation
-(TImagePtr& segImage, std::vector<TTr> const& trees,
+(TImagePtr& newImage, TImagePtr& segImage, std::vector<TTr> const& trees,
  TContainer const& picks, TMaskPtr const& mask,
  TImageVal<TImagePtr> const& keyToAssign, bool exact)
 {
+//std::cout << "genFinalSegmentation" << std::endl;
   typedef TImageVal<TImagePtr> Key;
   std::unordered_map<Key, Key> lmap;
+
   genLabelTransform(lmap, trees, picks, keyToAssign);
+
+  //filterLabelTransform (segImage, lmap, trees, picks, 0u);
+
   if (exact) { transformImage(segImage, lmap, mask); }
-  else { transformImage(segImage, lmap, mask, true); }
+  else { transformImage(newImage, segImage, lmap, mask, true); }
 }
 
 

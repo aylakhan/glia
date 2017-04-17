@@ -49,12 +49,15 @@ genMergeOrderGreedyUsingPbMean
         typename TRegionMap::Region::Boundary b;
         getBoundary(b, rit0->second, rit1->second);
         data.first = 0.0;
+        // sum all pixels that are part of the boundary to approximate initial saliency
         b.traverse([&pbImage, &data](typename TRegionMap::Point const& p){
             data.first += pbImage->GetPixel(p); });
         data.second = b.size();
+        // normalize?
         data.first = sdivide(data.first, data.second, 0.0);
       };
   auto initFsal = [](ItemData& data, Key r0, Key r1) -> double {
+    // fill in approximate initial saliency
     if (data.first == DUMMY)
     { perr("Error: invalid boundary saliency..."); }
     return -data.first;
@@ -72,6 +75,7 @@ genMergeOrderGreedyUsingPbMean
           data2s.first += pData1s->first * pData1s->second;
           data2s.second += pData1s->second;
         }
+        // normalize?
         data2s.first = sdivide(data2s.first, data2s.second, 0.0);
       };
   auto updateFsal = [](ItemData& data2s, Key rs, Key r2) -> double {
@@ -112,6 +116,7 @@ genMergeOrderGreedyUsingPbApproxMedian
   auto initFsal = [](ItemData& data, Key r0, Key r1) -> double
       {
         double p = stats::amedian(data);
+//std::cout << "genMergeOrderGreedyUsingPbApproxMedian initFb: " << p << std::endl;
         if (p == DUMMY) { perr("Error: invalid boundary saliency..."); }
         return -p;
       };
@@ -119,6 +124,7 @@ genMergeOrderGreedyUsingPbApproxMedian
       [&faux](ItemData& data2s, Key r0, Key r1, Key rs, Key r2,
          ItemData* pData0s, ItemData* pData1s)
       {
+        // splice all data together into data2s
         if (pData0s && pData1s) { splice(data2s, *pData0s, *pData1s); }
         else if (pData0s) { splice(data2s, *pData0s); }
         else if (pData1s) { splice(data2s, *pData1s); }
@@ -127,6 +133,7 @@ genMergeOrderGreedyUsingPbApproxMedian
   auto updateFsal = [](ItemData& data2s, Key rs, Key r2) -> double
       {
         double p = stats::amedian(data2s);
+//std::cout << "genMergeOrderGreedyUsingPbApproxMedian updateFsal: " << p << std::endl;
         if (p == DUMMY) { perr("Error: invalid boundary saliency..."); }
         return -p;
       };

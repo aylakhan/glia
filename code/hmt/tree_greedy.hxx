@@ -84,6 +84,7 @@ pickTreeNode (std::vector<TTree> const& trees,
               std::vector<std::vector<bool>> const& validity,
               Func comp)
 {
+//std::cout << "pickTreeNode" << std::endl;
   auto ret = std::make_pair(-1, -1);
   int nTree = trees.size();
   for (int i = 0; i < nTree; ++i) {
@@ -103,29 +104,43 @@ pickTreeNode (std::vector<TTree> const& trees,
 // Require node.data.label
 template <typename TTree, typename Func> void
 resolveTreeGreedy (std::vector<std::pair<int, int>>& picks,
-                   std::vector<TTree> const& trees, Func comp)
+                   std::vector<TTree> const& trees, Func comp, double threshold=0.2)
 {
+//std::cout << "resolveTreeGreedy" << std::endl;
   typedef decltype(trees.front().front().data.label) Key;
   picks.reserve(trees.front().size()); // Too big??
   int nTree = trees.size();
   std::vector<std::vector<bool>> validity(nTree);
   std::vector<std::unordered_map<Key, int>> lnmap(nTree);
   for (int i = 0; i < nTree; ++i) {
+
     validity[i].resize(trees[i].size(), true);
+
+    // threshold validity based on node probability
+
     trees[i].traverseLeaves
-        (trees[i].root(), [&lnmap, i](typename TTree::Node const& tn)
-         { lnmap[i][tn.data.label] = tn.self; });
+    (trees[i].root(), [&validity, &lnmap, i](typename TTree::Node const& tn)
+     { lnmap[i][tn.data.label] = tn.self; });
+    
+    trees[i].traverseLeaves
+    (trees[i].root(), [threshold, &validity, i](typename TTree::Node const& tn)
+     { if ( tn.data.potential <= threshold ) { validity[i][tn.self] = false; } });
+
   }
   std::vector<Key> llabels;
   llabels.reserve(trees.front().size()); // Too big??
   auto pick = pickTreeNode(trees, validity, comp);
   while (pick.first >= 0) {
+
+    // code that eliminates tree path as picks for valid segmentation
+
     picks.push_back(pick);
     validity[pick.first][pick.second] = false;
     trees[pick.first].traverseAncestors
         (pick.second, [&validity, &pick]
          (typename TTree::Node const& node)
          { validity[pick.first][node.self] = false; });
+
     llabels.clear();
     trees[pick.first].traverseDescendants
         (pick.second, [&validity, &pick, &llabels]

@@ -495,7 +495,7 @@ class ImageRegionShapeFeats : public virtual RegionShapeFeats {
       region.boundary.traverse
           ([&vp, &image, &thresholds, i]
            (typename TPoints::Point const& p)
-           { if (image->GetPixel(p) >= thresholds[i]) { ++vp; } });
+           { if (image->GetPixel(p) >= thresholds[i]) { ++vp; } /*if (image->GetPixel(p) < 0 || image->GetPixel(p) > 255) {std::cout << "pixel=" << image->GetPixel(p) << std::endl;}*/ });
       validPerims[i] = sdivide(vp, normalizingLength, 0.0);
       rValidPerims[i] = sdivide(vp, region.boundary.size(), 0.0);
     }

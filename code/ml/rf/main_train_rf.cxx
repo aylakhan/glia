@@ -39,7 +39,7 @@ bool operation ()
   // Set sample size
   if (sampleSizeRatio > FEPS) {
     options.sampsize =
-        rf_old::createIntScalar((int)((float)N * sampleSizeRatio + 0.5));
+        rf_old::createIntScalar(static_cast<int>(static_cast<float>(N) * sampleSizeRatio + 0.5));
     options.n_sampsize = 1;
   }
   // Set classwt to balance class
@@ -51,11 +51,11 @@ bool operation ()
     { if (cit->second > maxcnt) { maxcnt = cit->second; } }
     options.classwt = new double[labelCount.size()];
     options.n_classwt = labelCount.size();
+    options.DEBUG_ON = 1;
     int i = 0;
     for (auto cit = labelCount.begin(); cit != labelCount.end(); cit++) {
-      options.classwt[i] = (double)maxcnt / (double)cit->second;
-      std::cerr << "Class " << cit->first << ": " << cit->second
-		<< " [w = " << options.classwt[i] << "]" << std::endl;
+      options.classwt[i] = static_cast<double>(maxcnt) / static_cast<double>(cit->second);
+      //std::cout << "Class " << cit->first << ": " << cit->second << " [w = " << options.classwt[i] << "]" << std::endl;
       i++;
     }
   }

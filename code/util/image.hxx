@@ -213,6 +213,7 @@ transformImage (
     TImagePtr& image, std::unordered_map<TImageVal<TImagePtr>,
     TImageVal<TImagePtr>> const& lmap, TMaskPtr const& mask)
 {
+//std::cout << "transformImage" << std::endl;
   for (TImageIIt<TImagePtr> iit(image, image->GetRequestedRegion());
        !iit.IsAtEnd(); ++iit) {
     if (mask.IsNull() ||
@@ -221,21 +222,52 @@ transformImage (
   }
 }
 
-
 // If fillMissing == true, use fill pixels that miss label mappings
 // with BG_VAL
 template <typename TImagePtr, typename TMaskPtr> void
 transformImage (
-    TImagePtr& image, std::unordered_map<TImageVal<TImagePtr>,
-    TImageVal<TImagePtr>> const& lmap, TMaskPtr const& mask,
-    bool fillMissing)
+                TImagePtr& image, std::unordered_map<TImageVal<TImagePtr>,
+                TImageVal<TImagePtr>> const& lmap, TMaskPtr const& mask,
+                bool fillMissing)
 {
   for (TImageIIt<TImagePtr> iit(image, image->GetRequestedRegion());
        !iit.IsAtEnd(); ++iit) {
     if (mask.IsNull() ||
         mask->GetPixel(iit.GetIndex()) != MASK_OUT_VAL) {
+      
+      auto val = iit.Value();
+      auto idx = iit.GetIndex();
+      
+      // if value at iit not in new labeling and fillMissing is true,
+      // set to BG_VAL (should be 0)
       auto lit = lmap.find(iit.Get());
       if (lit != lmap.end()) { iit.Set(lit->second); }
+      else if (fillMissing) { iit.Set(BG_VAL); }
+    }
+  }
+}
+
+// If fillMissing == true, use fill pixels that miss label mappings
+// with BG_VAL
+template <typename TImagePtr, typename TMaskPtr> void
+transformImage (
+    TImagePtr& newImage, TImagePtr& image, std::unordered_map<TImageVal<TImagePtr>,
+    TImageVal<TImagePtr>> const& lmap, TMaskPtr const& mask,
+    bool fillMissing)
+{
+//std::cout << "transformImage fill missing: " << fillMissing << std::endl;
+  for (TImageIIt<TImagePtr> iit(image, image->GetRequestedRegion());
+       !iit.IsAtEnd(); ++iit) {
+    if (mask.IsNull() ||
+        mask->GetPixel(iit.GetIndex()) != MASK_OUT_VAL) {
+
+      auto val = iit.Value();
+      auto idx = iit.GetIndex();
+
+      // if value at iit not in new labeling and fillMissing is true,
+      // set to BG_VAL (should be 0)
+      auto lit = lmap.find(iit.Get());
+      if (lit != lmap.end()) { /*iit.Set(lit->second);*/ newImage->SetPixel(idx, lit->second); }
       else if (fillMissing) { iit.Set(BG_VAL); }
     }
   }
@@ -248,6 +280,7 @@ transformImage (TImagePtr& image, TRegionMap const& rmap,
                 std::unordered_map<TImageVal<TImagePtr>,
                 TImageVal<TImagePtr>> const& lmap)
 {
+//std::cout << "transformImage with region map" << std::endl;
   for (auto const& lp: lmap) {
     auto rit = rmap.find(lp.first);
     if (rit != rmap.end()) {

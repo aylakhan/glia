@@ -13,6 +13,7 @@ bool doRelabel = false;
 bool write16 = false;
 bool compress = false;
 std::string outputImageFile;
+std::string testFinalSegImageFile;
 
 bool operation ()
 {
@@ -32,6 +33,8 @@ bool operation ()
     castWriteImage<UInt16Image<DIMENSION>>(
         outputImageFile, outputImage, compress);
   } else { writeImage(outputImageFile, outputImage, compress); }
+  castWriteImage<UCharImage<DIMENSION>>
+  (testFinalSegImageFile, outputImage, compress);
   return true;
 }
 
@@ -59,6 +62,9 @@ int main (int argc, char* argv[])
        "Whether to write to uint16 image [default: false]")
       ("compress,z", bpo::value<bool>(&compress),
        "Whether to compress output image file(s) [default: false]")
+      ("toi",
+       bpo::value<std::string>(&testFinalSegImageFile),
+       "Output test final segmentation image file name (optional)")
       ("outputImage,o",
        bpo::value<std::string>(&outputImageFile)->required(),
        "Output image file name");

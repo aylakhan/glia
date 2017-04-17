@@ -19,7 +19,9 @@ bool relabel = false;
 bool write16 = false;
 bool compress = false;
 std::string finalSegImageFile;
+std::string testFinalSegImageFile;
 std::string bcImageFile;
+double threshold = 0.0;
 
 struct NodeData {
   Label label;
@@ -40,6 +42,7 @@ bool operation ()
         readData(mergeProbs, mergeProbFiles[i], true);
         // Generate tree and initialize node potentials
         // For root and leaves, use squared probabilities as potentials
+//std::cout << "genTreeWithNodePotentials" << std::endl;
         genTreeWithNodePotentials
             (trees[i], orders[i], mergeProbs.begin());
       } else {
@@ -75,22 +78,46 @@ bool operation ()
          { return node.data.potential; });
     writeImage(bcImageFile, bcImage, compress);
   }
+
   // Resolve tree and output final segmentation
-  if (!finalSegImageFile.empty()) {
+  if (! finalSegImageFile.empty()) {
     // Resolve tree
     std::vector<std::pair<int, int>> picks;
+
     resolveTreeGreedy
-        (picks, trees, [](Tree::Node const& node0, Tree::Node const& node1)
-         -> bool { return node0.data.potential < node1.data.potential; });
-    // Output final segmentation
-    genFinalSegmentation(segImage, trees, picks, mask, 1u, !ignore);
-    if (relabel) { relabelImage(segImage, 0); }
+    (picks, trees, [](Tree::Node const& node0, Tree::Node const& node1/*, double threshold = 0.2*/)
+     -> bool { return node0.data.potential < node1.data.potential; });
+
+    // TODO (maybe) prune picks list - check node potential against threshold
+
+    LabelImage<DIMENSION>::RegionType region;
+    LabelImage<DIMENSION>::IndexType start;
+    start.Fill( 0 );
+    
+    region.SetIndex(start);
+
+    LabelImage<DIMENSION>::RegionType segImageRegion = segImage->GetLargestPossibleRegion();
+    LabelImage<DIMENSION>::SizeType size = segImageRegion.GetSize();
+    region.SetSize(size);
+
+    LabelImage<DIMENSION>::Pointer newImage = LabelImage<DIMENSION>::New();
+    newImage->SetRegions(region);
+    newImage->SetSpacing( segImage->GetSpacing() );
+    newImage->Allocate();
+    newImage->FillBuffer( itk::NumericTraits< Label >::Zero );
+
+    genFinalSegmentation(newImage, segImage, trees, picks, mask, 1u, !ignore); // 1u is unsigned int
+
+    if (relabel) { relabelImage(newImage, 0); }
     if (write16) {
-      castWriteImage<UInt16Image<DIMENSION>>
-          (finalSegImageFile, segImage, compress);
+      castWriteImage<UInt16Image<DIMENSION>>(finalSegImageFile, newImage, compress);
     }
-    else { writeImage(finalSegImageFile, segImage, compress); }
+    else { writeImage(finalSegImageFile, newImage, compress); }
+
+    castWriteImage<UCharImage<DIMENSION>>
+    (testFinalSegImageFile, newImage, compress);
   }
+
   return true;
 }
 
@@ -102,6 +129,8 @@ int main (int argc, char* argv[])
       ("help", "Print usage info")
       ("segImage,s", bpo::value<std::string>(&segImageFile)->required(),
        "Input initial segmentation image file name")
+      ("threshold,t", bpo::value<double>(&threshold)->required(),
+       "Threshold level")
       ("mergeOrders,o",
        bpo::value<std::vector<std::string>>(&mergeOrderFiles)->required(),
        "Input merging order file name(s)")
@@ -124,6 +153,9 @@ int main (int argc, char* argv[])
       ("finalSegImage,f",
        bpo::value<std::string>(&finalSegImageFile),
        "Output final segmentation image file name (optional)")
+      ("toi",
+       bpo::value<std::string>(&testFinalSegImageFile),
+       "Output test final segmentation image file name (optional)")
       ("bcImage,b", bpo::value<std::string>(&bcImageFile),
        "Output boundary confidence image file name (optional)");
   return parse(argc, argv, opts) && operation() ?
