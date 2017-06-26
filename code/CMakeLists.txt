@@ -72,8 +72,13 @@ if(GLIA_BUILD_HMT)
   add_executable(merge_order_pb hmt/main_merge_order_pb.cxx)
   target_link_libraries(merge_order_pb ${ITK_LIBRARIES} ${BOOST_PROGRAM_OPTIONS_LIB})
 
+  # boundary classifier
   add_executable(bc_feat hmt/main_bc_feat.cxx)
   target_link_libraries(bc_feat ${ITK_LIBRARIES} ${BOOST_PROGRAM_OPTIONS_LIB})
+
+  # region classifier
+  add_executable(rc_feat hmt/main_rc_feat.cxx)
+  target_link_libraries(rc_feat ${ITK_LIBRARIES} ${BOOST_PROGRAM_OPTIONS_LIB})
 
   add_executable(bc_label_vi hmt/main_bc_label_vi.cxx)
   target_link_libraries(bc_label_vi ${ITK_LIBRARIES} ${BOOST_PROGRAM_OPTIONS_LIB})

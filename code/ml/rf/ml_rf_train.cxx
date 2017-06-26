@@ -359,7 +359,7 @@ void rf_old::train (Model& model, double* X, int* Y, int N, int D,
     ntree = 500;
     DEFAULTS_ON = 1;
   }
-  if (mtry <= 0 || mtry > D) mtry = (int)floor(sqrt((double)D));
+  if (mtry <= 0 || mtry > D) mtry = static_cast<int>(floor(sqrt((double)D)));
   int addclass = N <= 0? 1: 0;
   if (addclass == 0 && n_orig_labels < 2) {
     std::cerr << "Need at least two classes for classification..."

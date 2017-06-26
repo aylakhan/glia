@@ -207,8 +207,8 @@ void rf_old::readMatrixFromFiles (int*& matrix, int& rowNum, int& colNum,
   int n = rowNum * colNum;
   matrix = new int[n];
   for (int i = 0; i < n; i++) {
-    if (m[i] >= 0) matrix[i] = (int)(m[i] + 0.5);
-    else matrix[i] = (int)(m[i] - 0.5);
+    if (m[i] >= 0) matrix[i] = static_cast<int>(m[i] + 0.5);
+    else matrix[i] = static_cast<int>(m[i] - 0.5);
   }
   delete[] m;
 }
